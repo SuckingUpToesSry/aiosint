@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI OSINT Assistant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TELA DE CONFIGURAÇÃO (aparece na primeira vez) -->
+    <div id="config-screen" class="config-screen">
+        <div class="config-box">
+            <h1>🕵️ AI OSINT Assistant</h1>
+            <p>Configure sua API para começar</p>
+
+            <label for="api-url">URL da API:</label>
+            <select id="api-url">
+                <option value="https://api.openai.com/v1/chat/completions">OpenAI (GPT)</option>
+                <option value="https://api.groq.com/openai/v1/chat/completions">Groq (Llama, Mixtral)</option>
+                <option value="https://api.deepseek.com/v1/chat/completions">DeepSeek</option>
+                <option value="https://api.openrouter.ai/api/v1/chat/completions">OpenRouter (vários)</option>
+            </select>
+
+            <label for="api-key">Sua API Key:</label>
+            <input type="password" id="api-key" placeholder="sk-... ou gsk_... ou sk-or-...">
+
+            <label for="model-name">Modelo:</label>
+            <input type="text" id="model-name" placeholder="gpt-4o-mini" value="gpt-4o-mini">
+
+            <button id="save-config" class="btn-primary">💾 Salvar e Começar</button>
+
+            <p class="hint">🔒 Sua chave fica salva apenas no seu navegador (localStorage).<br>
+            Nenhum dado é enviado para servidores terceiros além da API escolhida.</p>
+        </div>
+    </div>
+
+    <!-- TELA PRINCIPAL DO CHAT -->
+    <div id="chat-screen" class="chat-screen hidden">
+
+        <header>
+            <h1>🕵️ AI OSINT</h1>
+            <div class="header-buttons">
+                <button id="clear-chat" title="Limpar conversa">🗑️</button>
+                <button id="open-config" title="Configurações">⚙️</button>
+            </div>
+        </header>
+
+        <div id="chat-messages" class="chat-messages">
+            <div class="message system">
+                <p>👋 Bem-vindo! Sou seu assistente de <strong>OSINT</strong> (Open Source Intelligence).</p>
+                <p>Posso ajudar com:</p>
+                <ul>
+                    <li>🌍 Geolocalização de imagens</li>
+                    <li>🔍 Busca de usernames e perfis</li>
+                    <li>📡 Análise de DNS, WHOIS e subdomínios</li>
+                    <li>📸 Análise de metadados (EXIF)</li>
+                    <li>🕸️ Técnicas de investigação digital</li>
+                    <li>✅ Verificação de desinformação</li>
+                </ul>
+                <p>Digite sua pergunta abaixo!</p>
+            </div>
+        </div>
+
+        <form id="chat-form" class="chat-form">
+            <input type="text" id="user-input" placeholder="Ex: Como geolocalizar uma foto pelo EXIF?" autocomplete="off">
+            <button type="submit" id="send-btn">Enviar</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
