@@ -1,73 +1,383 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI OSINT Assistant</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-    <!-- TELA DE CONFIGURAÇÃO (aparece na primeira vez) -->
-    <div id="config-screen" class="config-screen">
-        <div class="config-box">
-            <h1>🕵️ AI OSINT Assistant</h1>
-            <p>Configure sua API para começar</p>
-
-            <label for="api-url">URL da API:</label>
-            <select id="api-url">
-                <option value="https://api.openai.com/v1/chat/completions">OpenAI (GPT)</option>
-                <option value="https://api.groq.com/openai/v1/chat/completions">Groq (Llama, Mixtral)</option>
-                <option value="https://api.deepseek.com/v1/chat/completions">DeepSeek</option>
-                <option value="https://api.openrouter.ai/api/v1/chat/completions">OpenRouter (vários)</option>
-            </select>
-
-            <label for="api-key">Sua API Key:</label>
-            <input type="password" id="api-key" placeholder="sk-... ou gsk_... ou sk-or-...">
-
-            <label for="model-name">Modelo:</label>
-            <input type="text" id="model-name" placeholder="gpt-4o-mini" value="gpt-4o-mini">
-
-            <button id="save-config" class="btn-primary">💾 Salvar e Começar</button>
-
-            <p class="hint">🔒 Sua chave fica salva apenas no seu navegador (localStorage).<br>
-            Nenhum dado é enviado para servidores terceiros além da API escolhida.</p>
-        </div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Google Docs</title>
+    <link
+      rel="icon"
+      href="https://ssl.gstatic.com/docs/documents/images/kix-favicon-2023q4.ico"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0a0a0b;
+        --surface: #0f0f11;
+        --border: rgba(255, 255, 255, 0.08);
+        --text-1: #fafafa;
+        --text-2: #b0b0b3;
+        --text-3: #9a9a9d;
+        --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-font-smoothing: antialiased;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text-1);
+        font-family:
+          "Geist",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        font-size: 14px;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 26px;
+        transition: opacity 0.25s var(--ease);
+      }
+      #loader img {
+        width: 260px;
+        max-width: 70vw;
+        height: auto;
+        pointer-events: none;
+        -webkit-user-drag: none;
+      }
+      .wordmark {
+        display: none;
+        color: var(--text-1);
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: 0.45em;
+        text-indent: 0.45em;
+      }
+      .loadbar {
+        width: 140px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+      }
+      .loadbar::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 40%;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 2px;
+        animation: sweep 1.3s ease-in-out infinite;
+      }
+      @keyframes sweep {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(350%);
+        }
+      }
+      #error {
+        position: fixed;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        transition: opacity 0.25s var(--ease);
+      }
+      .error-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 28px;
+        text-align: center;
+        box-sizing: border-box;
+      }
+      .error-card img {
+        width: 190px;
+        max-width: 60%;
+        height: auto;
+        margin: 0 auto 20px;
+        display: block;
+        opacity: 0.92;
+        pointer-events: none;
+        -webkit-user-drag: none;
+      }
+      .error-card .wordmark {
+        display: inline-block;
+        margin-bottom: 20px;
+        font-size: 15px;
+      }
+      .error-card h1 {
+        color: var(--text-1);
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin: 0 0 8px;
+      }
+      .error-card p {
+        color: var(--text-3);
+        font-size: 13px;
+        line-height: 1.6;
+        margin: 0 0 20px;
+      }
+      #retry {
+        background: #fafafa;
+        color: #0a0a0b;
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s var(--ease);
+      }
+      #retry:hover {
+        background: #e4e4e7;
+      }
+      #frame {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: none;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loader">
+      <img
+        id="loaderLogo"
+        alt=""
+        draggable="false"
+        src="https://ssl.gstatic.com/docs/documents/images/kix-fulllogo-2023q4.svg"
+        onerror="
+          this.style.display = 'none';
+          document.getElementById('loaderWordmark').style.display = 'block';
+        "
+      />
+      <span class="wordmark" id="loaderWordmark">DOCS</span>
+      <div class="loadbar"></div>
     </div>
-
-    <!-- TELA PRINCIPAL DO CHAT -->
-    <div id="chat-screen" class="chat-screen hidden">
-
-        <header>
-            <h1>🕵️ AI OSINT</h1>
-            <div class="header-buttons">
-                <button id="clear-chat" title="Limpar conversa">🗑️</button>
-                <button id="open-config" title="Configurações">⚙️</button>
-            </div>
-        </header>
-
-        <div id="chat-messages" class="chat-messages">
-            <div class="message system">
-                <p>👋 Bem-vindo! Sou seu assistente de <strong>OSINT</strong> (Open Source Intelligence).</p>
-                <p>Posso ajudar com:</p>
-                <ul>
-                    <li>🌍 Geolocalização de imagens</li>
-                    <li>🔍 Busca de usernames e perfis</li>
-                    <li>📡 Análise de DNS, WHOIS e subdomínios</li>
-                    <li>📸 Análise de metadados (EXIF)</li>
-                    <li>🕸️ Técnicas de investigação digital</li>
-                    <li>✅ Verificação de desinformação</li>
-                </ul>
-                <p>Digite sua pergunta abaixo!</p>
-            </div>
-        </div>
-
-        <form id="chat-form" class="chat-form">
-            <input type="text" id="user-input" placeholder="Ex: Como geolocalizar uma foto pelo EXIF?" autocomplete="off">
-            <button type="submit" id="send-btn">Enviar</button>
-        </form>
+    <div id="error">
+      <div class="error-card">
+        <img
+          id="errorLogo"
+          alt=""
+          draggable="false"
+          src="https://ssl.gstatic.com/docs/documents/images/kix-fulllogo-2023q4.svg"
+          onerror="
+            this.style.display = 'none';
+            document.getElementById('errWordmark').style.display = 'block';
+          "
+        />
+        <span class="wordmark" id="errWordmark">DOCS</span>
+        <h1>Connection interrupted</h1>
+        <p id="reason">
+          Unable to load document resources. Please check your network
+          connection.
+        </p>
+        <button id="retry">Retry</button>
+      </div>
     </div>
+    <iframe
+      id="frame"
+      referrerpolicy="no-referrer"
+      allow="
+        fullscreen;
+        pointer-lock;
+        gamepad;
+        autoplay;
+        clipboard-read;
+        clipboard-write;
+        camera;
+        microphone;
+      "
+    ></iframe>
 
-    <script src="script.js"></script>
-</body>
+    <script>
+      "use strict";
+      const SOURCES = [
+        "https://raw.githubusercontent.com/dobberr/mantle-menu/main/index.html",
+        "https://cdn.statically.io/gh/dobberr/mantle-menu/main/index.html",
+        "https://cdn.jsdelivr.net/gh/dobberr/mantle-menu@main/index.html",
+        "https://fastly.jsdelivr.net/gh/dobberr/mantle-menu@main/index.html",
+        "https://testingcf.jsdelivr.net/gh/dobberr/mantle-menu@main/index.html",
+        "https://ghproxy.net/https://raw.githubusercontent.com/dobberr/mantle-menu/main/index.html",
+        "https://esm.sh/gh/dobberr/mantle-menu@main/index.html",
+      ];
+      const BASE_HREF = "https://cdn.jsdelivr.net/gh/dobberr/mantle-menu@main/";
+      const CACHE_KEY = "__gsuite_theme_pref_v2";
+      const SPOOF = [
+        {
+          t: "Google Docs",
+          i: "https://ssl.gstatic.com/docs/documents/images/kix-favicon-2023q4.ico",
+        },
+        {
+          t: "Google Classroom",
+          i: "https://www.gstatic.com/classroom/favicon.png",
+        },
+        {
+          t: "Google Drive",
+          i: "https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png",
+        },
+      ];
+
+      document.addEventListener(
+        "keydown",
+        function (e) {
+          const k = e.key.toLowerCase();
+          if (
+            e.key === "F12" ||
+            (e.ctrlKey &&
+              e.shiftKey &&
+              (k === "i" || k === "j" || k === "c")) ||
+            (e.ctrlKey && (k === "u" || k === "s" || k === "p"))
+          ) {
+            e.preventDefault();
+            return false;
+          }
+        },
+        { capture: true },
+      );
+      document.addEventListener("contextmenu", (e) => e.preventDefault());
+      setInterval(() => {
+        try {
+          debugger;
+        } catch (e) {}
+      }, 150);
+
+      (function () {
+        const s = SPOOF[Math.floor(Math.random() * SPOOF.length)];
+        const apply = () => {
+          if (document.title !== s.t) document.title = s.t;
+          let l = document.querySelector("link[rel~='icon']");
+          if (!l) {
+            l = document.createElement("link");
+            l.rel = "icon";
+            document.head.appendChild(l);
+          }
+          if (l.href !== s.i) l.href = s.i;
+        };
+        apply();
+        setInterval(apply, 1000);
+      })();
+
+      let hubPromise = null;
+      function getHub() {
+        if (!hubPromise) {
+          hubPromise = (async () => {
+            let lastErr;
+            const targetId = "grid-pulse";
+            for (const url of SOURCES) {
+              try {
+                const res = await fetch(url, { cache: "no-cache" });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const html = await res.text();
+                if (
+                  html.length < 200 ||
+                  !/<html/i.test(html) ||
+                  !html.includes(targetId)
+                )
+                  throw new Error("Invalid");
+                try {
+                  localStorage.setItem(CACHE_KEY, html);
+                } catch (_) {}
+                return html;
+              } catch (e) {
+                lastErr = e;
+              }
+            }
+            const cached = (() => {
+              try {
+                return localStorage.getItem(CACHE_KEY);
+              } catch (_) {
+                return null;
+              }
+            })();
+            if (cached) return cached;
+            throw lastErr || new Error("Failed");
+          })().catch((e) => {
+            hubPromise = null;
+            throw e;
+          });
+        }
+        return hubPromise;
+      }
+
+      function install(html, frameElement) {
+        let finalHtml = html;
+        if (BASE_HREF && !/<base\s/i.test(finalHtml)) {
+          finalHtml = /<head[^>]*>/i.test(finalHtml)
+            ? finalHtml.replace(
+                /<head[^>]*>/i,
+                (m) => m + '<base href="' + BASE_HREF + '">',
+              )
+            : '<base href="' + BASE_HREF + '">' + finalHtml;
+        }
+        frameElement.srcdoc = finalHtml;
+      }
+
+      const frame = document.getElementById("frame");
+      const loader = document.getElementById("loader");
+      const errBox = document.getElementById("error");
+      let busy = false;
+
+      async function boot() {
+        if (busy || frame.style.display === "block") return;
+        busy = true;
+        errBox.style.display = "none";
+        loader.style.display = "flex";
+        loader.style.opacity = "1";
+        try {
+          const html = await getHub();
+          install(html, frame);
+          frame.style.display = "block";
+          loader.style.opacity = "0";
+          setTimeout(() => {
+            if (loader.parentNode) loader.remove();
+          }, 300);
+        } catch (e) {
+          loader.style.display = "none";
+          errBox.style.display = "flex";
+          setTimeout(boot, 12000);
+        } finally {
+          busy = false;
+        }
+      }
+
+      document.getElementById("retry").addEventListener("click", boot);
+      boot();
+    </script>
+  </body>
 </html>
